@@ -1,0 +1,1 @@
+// pseudo-api for now - will be openapi-generator-cli code in the futureimport { PUBLIC_API_BASE } from '$env/static/public';
