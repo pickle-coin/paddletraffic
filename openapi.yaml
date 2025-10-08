@@ -1,0 +1,475 @@
+openapi: 3.1.0
+info:
+  title: Paddletraffic API
+  description: |
+    Paddletraffic helps players discover places where pickleball can be played.
+  version: 1.0.0
+  x-fiddle-import-file: true
+servers:
+  - url: https://api.paddletraffic.com
+tags:
+  - name: courts
+  - name: reports
+  - name: status
+paths:
+  /v1/courts:
+    post:
+      tags:
+        - courts
+      summary: Create a court
+      description: Create a new court (or maybe just, *propose* a new Court?)
+      operationId: createACourt
+      responses:
+        "201":
+          description: The request was successful, and a new resource was created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourtSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      requestBody:
+        required: true
+        description: "Fields required to create a new court"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtCreate"
+      parameters: []
+    get:
+      operationId: searchForCourts
+      tags:
+        - courts
+      summary: Search for Courts
+      responses:
+        "200":
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedCourt"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      parameters:
+        - name: bbox
+          in: query
+          description: >
+            Bounding box filter as `west,south,east,north` (WGS84 degrees).
+            Example: `-123.3,37.5,-121.7,38.4`.
+          required: false
+          schema:
+            type: string
+            pattern: ^(-?\\d+(\\.\\d+)?),(-?\\d+(\\.\\d+)?),(-?\\d+(\\.\\d+)?),(-?\\d+(\\.\\d+)?)$
+        - in: query
+          name: name
+          required: false
+          style: form
+          description: Name of court to search for
+          explode: true
+          schema:
+            type: string
+            maxLength: 200
+          allowReserved: false
+      description: Returns pickleball courts. Each court embeds a Location object that
+        describes the place (address, coordinates, etc.).
+  /v1/reports/{courtId}:
+    post:
+      operationId: createAReportForTheStatusOfACourt
+      tags:
+        - reports
+      summary: Create a Report for the Status of a Court
+      parameters:
+        - $ref: "#/components/parameters/courtId"
+      responses:
+        "201":
+          description: The request was successful, and a new court was created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourtStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      requestBody:
+        required: true
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Report"
+  /v1/status/{courtId}:
+    get:
+      operationId: getsStausOfCourt
+      tags:
+        - status
+      summary: Gets staus of court
+      responses:
+        "200":
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourtStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      parameters:
+        - $ref: "#/components/parameters/courtId"
+      description: Returns the calculated status of the court
+  /v1/status:
+    get:
+      operationId: getStatusForGivenListOfCourts
+      tags:
+        - status
+      summary: Get status for given list of courts
+      responses:
+        "200":
+          description: The request was successful, and the server has returned the
+            requested resource in the response body.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourtStatus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      parameters:
+        - in: query
+          name: courtIds
+          required: true
+          style: form
+          description: List of CourtIds to return the status for
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+          allowReserved: false
+  /v1/courts/{courtId}:
+    patch:
+      operationId: updateACourt
+      tags:
+        - courts
+      summary: Update a Court
+      responses:
+        "200":
+          description: The server has successfully updated the court.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CourtUpdate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      requestBody:
+        required: true
+        description: ""
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourtUpdate"
+      parameters:
+        - $ref: "#/components/parameters/courtId"
+      description: Again, *propose* to update a court?
+    delete:
+      operationId: deleteACourt
+      tags:
+        - courts
+      summary: Delete a Court
+      responses:
+        "204":
+          description: The request was successful, but there is no content to return in
+            the response.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerErrror"
+      description: >-
+        *propose* to delete a court?
+
+        (and so like each proposal endpoint is public and then actual delete
+        update create endpoints are private eventually)
+      parameters:
+        - $ref: "#/components/parameters/courtId"
+components:
+  schemas:
+    CourtStatus:
+      description: Busyness of a pickleball court.
+      type: object
+      properties:
+        courtsOccupied:
+          type: number
+          example: 3
+        groupsWaiting:
+          type: number
+          example: 5
+        lastReport:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime when the last report was made for this court
+          example: 2004-11-15
+        courtId:
+          type: number
+      required:
+        - courtsOccupied
+        - groupsWaiting
+        - lastReport
+        - courtId
+    Court:
+      description: A pickleball court resource. Contains the physical **Location**
+        where it can be played.
+      type: object
+      required:
+        - id
+        - name
+        - location
+        - courtCount
+        - status
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+          description: Display name for the court.
+          example: City Park Courts - Court 1
+        courtCount:
+          type: number
+          example: 4
+        location:
+          $ref: "#/components/schemas/Location"
+        status:
+          $ref: "#/components/schemas/CourtStatus"
+    Location:
+      description: A physical place that may host pickleball (place-only—no court details).
+      type: object
+      required:
+        - addressLine
+        - coordinates
+        - countryCode
+        - timezone
+      properties:
+        addressLine:
+          type: string
+          example: 1700 N York St
+        region:
+          description: State, province, or region.
+          type: string
+          example: CO
+        postalCode:
+          type: string
+          example: "80202"
+        countryCode:
+          description: ISO 3166-1 alpha-2.
+          type: string
+          minLength: 2
+          maxLength: 2
+          example: US
+        timezone:
+          description: IANA timezone ID for the location if known.
+          type: string
+          example: America/Denver
+        coordinates:
+          type: object
+          required:
+            - lat
+            - lon
+          properties:
+            lat:
+              type: number
+              format: double
+              example: 39.7474
+            lon:
+              type: number
+              format: double
+              example: -104.955
+        placeId:
+          description: External place identifier (e.g., OpenStreetMap, Google, or internal).
+          type: string
+          example: g:ChIJ7aVxnOTHbIcR7H6uG5W4f3E
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: bad_request
+        message:
+          type: string
+          example: bbox must be west,south,east,north
+        details:
+          description: Optional machine-readable fields for debugging.
+          type: object
+      required:
+        - code
+        - message
+    CourtUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        courtCount:
+          type: number
+        location:
+          $ref: "#/components/schemas/LocationUpdate"
+      description: Data transfer object for updating all fields of an existing Court
+        (PUT operation).
+      x-fiddle-dto-info:
+        baseSchemaName: Court
+    Report:
+      type: object
+      properties:
+        courtsOccupied:
+          type: number
+        groupsWaiting:
+          type: number
+      required:
+        - courtsOccupied
+        - groupsWaiting
+    CourtCreate:
+      type: object
+      properties:
+        name:
+          type: string
+        courtCount:
+          type: number
+        location:
+          $ref: "#/components/schemas/Location"
+      required:
+        - name
+        - courtCount
+        - location
+      description: Data transfer object for creating a new Court.
+      x-fiddle-dto-info:
+        baseSchemaName: Court
+    CourtSummary:
+      description: A simplified representation of a Court, typically used in list views.
+      type: object
+      required:
+        - id
+        - name
+        - location
+        - courtCount
+      properties:
+        id:
+          type: string
+          description: Unique identifier assigned by Paddletraffic.
+          example: crt_01J8ABCDEF23456789
+        name:
+          type: string
+          description: Display name for the court.
+          example: City Park Courts - Court 1
+        courtCount:
+          type: number
+          example: 4
+        location:
+          $ref: "#/components/schemas/Location"
+      x-fiddle-dto-info:
+        baseSchemaName: Court
+    PaginatedBase:
+      type: object
+      description: Paginated list wrapper
+      required:
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+        - data
+      properties:
+        page:
+          type: integer
+          minimum: 0
+        pageSize:
+          type: integer
+          minimum: 1
+        totalItems:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        data: {}
+    PaginatedCourt:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedBase"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/Court"
+      description: Paginated list of Courts
+    LocationUpdate:
+      type: object
+      properties:
+        addressLine:
+          type: string
+        region:
+          type: string
+        postalCode:
+          type: string
+        countryCode:
+          type: string
+        timezone:
+          type: string
+        coordinates:
+          type: object
+          properties:
+            lat:
+              type: number
+            lon:
+              type: number
+        placeId:
+          type: string
+      description: Data transfer object for updating all fields of an existing
+        Location (PUT operation).
+      x-fiddle-dto-info:
+        baseSchemaName: Location
+  parameters:
+    courtId:
+      name: courtId
+      in: path
+      required: true
+      schema:
+        type: number
+  responses:
+    BadRequest:
+      description: The server could not understand the request due to invalid syntax.
+        The client should modify the request and try again.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InternalServerErrror:
+      description: The server encountered an unexpected condition that prevented it
+        from fulfilling the request. Report the issue to the support team if it
+        persists.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: The user has sent too many requests in a given amount of time.
+        Reduce the request rate and try again later.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
