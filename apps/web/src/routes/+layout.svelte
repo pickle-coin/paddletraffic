@@ -1,7 +1,8 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import 'leaflet/dist/leaflet.css'; // required by leaflet, may be only needed on the +page.svelte?
+	import 'leaflet/dist/leaflet.css';
+	import 'maplibre-gl/dist/maplibre-gl.css';
 
 	let { children } = $props();
 </script>
