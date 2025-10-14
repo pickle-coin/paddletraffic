@@ -67,6 +67,6 @@
 		]
 	},
 	"dependencies": {
-		"leaflet": "^1.9.4"
+		"maplibre-gl": "^5.9.0"
 	}
 }
