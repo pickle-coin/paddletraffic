@@ -8,13 +8,13 @@
 </script>
 
 <Map>
-	<button onclick={toggle} class="absolute left-4 top-4 rounded-md bg-red-600 p-2 hover:cursor-pointer"> TEST TEXT </button>
+	<button onclick={toggle} class="absolute left-4 top-4 rounded-md bg-red-600 p-2 hover:cursor-pointer"> AARON'S HQ </button>
 
 	<Popup
 		bind:open
-		class="absolute bottom-0 left-0 right-0 w-full"
 		title="Aaron's HQ"
 		courts_occupied={2}
+		total_courts={3}
 		groups_waiting={1}
 		estimated_wait_time_minutes={60}
 	></Popup>

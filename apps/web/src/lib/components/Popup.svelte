@@ -7,21 +7,23 @@
 		open: boolean;
 		title: string;
 		courts_occupied: number;
+		total_courts: number;
 		groups_waiting: number;
 		estimated_wait_time_minutes: number;
 	}
 
 	let {
-		class: className,
 		open = $bindable(),
 		title,
 		courts_occupied,
+        total_courts,
 		groups_waiting,
 		estimated_wait_time_minutes
 	}: PopupProps = $props();
 </script>
 
-<Drawer.Root bind:open>
+<Drawer.Root bind:open modal={false}>
+    <Drawer.Overlay class="-z-10 pointer-events-none"/>
 	<Drawer.Content class="h-fit max-h-screen">
 		<!-- CSS Gymnastics over here -->
 		<div class="relative m-0 h-0 w-full p-0">
@@ -45,7 +47,7 @@
                     <div class="h-8 w-1.5 rounded-full bg-orange-400"></div>
                     <div class="flex w-full justify-between text-sm font-medium">
                         <span>Courts Occupied:</span>
-                        <span>3/6</span>
+                        <span>{courts_occupied}/{total_courts}</span>
                     </div>
                 </div>
     
@@ -54,7 +56,7 @@
                     <div class="h-8 w-1.5 rounded-full bg-green-400"></div>
                     <div class="flex w-full justify-between text-sm font-medium">
                         <span>Groups Waiting:</span>
-                        <span>0</span>
+                        <span>{groups_waiting}</span>
                     </div>
                 </div>
     
@@ -63,7 +65,7 @@
                     <div class="h-8 w-1.5 rounded-full bg-yellow-400"></div>
                     <div class="flex w-full justify-between text-sm font-medium">
                         <span>Estimated Wait Time:</span>
-                        <span>0 Minutes</span>
+                        <span>{estimated_wait_time_minutes} Minutes</span>
                     </div>
                 </div>
             </div>
