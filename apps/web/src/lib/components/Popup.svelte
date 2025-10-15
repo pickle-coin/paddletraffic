@@ -2,7 +2,6 @@
 	import * as Drawer from '$lib/components/ui/drawer/index';
 	import type { ClassValue } from 'clsx';
 	import { X } from 'lucide-svelte';
-	import { Button } from './ui/button';
 	interface PopupProps {
 		class?: ClassValue;
 		open: boolean;

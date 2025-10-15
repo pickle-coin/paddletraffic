@@ -2,7 +2,6 @@
 	// main map page following figma design using map component and other features composed together
 	import Map from '$lib/components/Map.svelte';
 	import Popup from '$lib/components/Popup.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
 
 	let open = $state(true);
 	const toggle = () => { open = !open };
