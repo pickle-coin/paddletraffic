@@ -100,7 +100,7 @@ paths:
           $ref: "#/components/responses/InternalServerErrror"
       requestBody:
         required: true
-        description: ""
+        description: "Give the full description of the court object to create a court"
         content:
           application/json:
             schema:
@@ -163,6 +163,7 @@ paths:
             type: array
             items:
               type: integer
+            example: [1, 2, 4, 9, 3, 17]
           allowReserved: false
   /v1/courts/{courtId}:
     patch:
@@ -183,7 +184,7 @@ paths:
           $ref: "#/components/responses/InternalServerErrror"
       requestBody:
         required: true
-        description: ""
+        description: "Update the court with given court ID with object params which will change the court"
         content:
           application/json:
             schema:
@@ -230,6 +231,7 @@ components:
           example: 2004-11-15
         courtId:
           type: number
+          example: 1
       required:
         - courtsOccupied
         - groupsWaiting
@@ -317,6 +319,7 @@ components:
           example: bbox must be west,south,east,north
         details:
           description: Optional machine-readable fields for debugging.
+          example: The endpoint /v1/beans/aaron does not exist
           type: object
       required:
         - code
@@ -326,8 +329,10 @@ components:
       properties:
         name:
           type: string
+          example: Hogan Park
         courtCount:
           type: number
+          example: 6
         location:
           $ref: "#/components/schemas/LocationUpdate"
       description: Data transfer object for updating all fields of an existing Court
@@ -336,11 +341,14 @@ components:
         baseSchemaName: Court
     Report:
       type: object
+      description: A report which a user can make to contribute the the status of a court
       properties:
         courtsOccupied:
           type: number
+          example: 4
         groupsWaiting:
           type: number
+          example: 3
       required:
         - courtsOccupied
         - groupsWaiting
@@ -349,8 +357,10 @@ components:
       properties:
         name:
           type: string
+          example: Flat Iron Park
         courtCount:
           type: number
+          example: 8
         location:
           $ref: "#/components/schemas/Location"
       required:
@@ -446,6 +456,7 @@ components:
   parameters:
     courtId:
       name: courtId
+      description: ID to identify a given group of courts
       in: path
       required: true
       schema:
