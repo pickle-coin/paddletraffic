@@ -219,10 +219,10 @@ components:
       type: object
       properties:
         courtsOccupied:
-          type: number
+          type: integer
           example: 3
         groupsWaiting:
-          type: number
+          type: integer
           example: 5
         lastReport:
           type: string
@@ -230,7 +230,7 @@ components:
           description: ISO 8601 datetime when the last report was made for this court
           example: 2004-11-15
         courtId:
-          type: number
+          type: integer
           example: 1
       required:
         - courtsOccupied
@@ -249,14 +249,14 @@ components:
         - status
       properties:
         id:
-          type: number
+          type: integer
           example: 1
         name:
           type: string
           description: Display name for the court.
           example: City Park Courts - Court 1
         courtCount:
-          type: number
+          type: integer
           example: 4
         location:
           $ref: "#/components/schemas/Location"
@@ -344,10 +344,10 @@ components:
       description: A report which a user can make to contribute the the status of a court
       properties:
         courtsOccupied:
-          type: number
+          type: integer
           example: 4
         groupsWaiting:
-          type: number
+          type: integer
           example: 3
       required:
         - courtsOccupied
@@ -359,7 +359,7 @@ components:
           type: string
           example: Flat Iron Park
         courtCount:
-          type: number
+          type: integer
           example: 8
         location:
           $ref: "#/components/schemas/Location"
@@ -523,7 +523,7 @@ components:
       in: path
       required: true
       schema:
-        type: number
+        type: integer
   responses:
     BadRequest:
       description: The server could not understand the request due to invalid syntax.
