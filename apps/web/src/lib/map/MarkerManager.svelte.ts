@@ -77,16 +77,16 @@ function clearAllMarkers(): void {
 }
 
 /**
- * Sync markers with current court data
+ * Sync markers with court data
  */
-function syncMarkers(): void {
+function syncMarkers(courts: Court[]): void {
 	if (!mapInstance) return;
 
 	// Remove all existing markers
 	clearAllMarkers();
 
 	// Add markers for each court
-	courtsState.courts.forEach((court) => {
+	courts.forEach((court) => {
 		const markerData = createMarker(court, mapInstance!);
 		markerMap.set(court.id, markerData);
 	});
@@ -95,7 +95,7 @@ function syncMarkers(): void {
 /**
  * Update marker selection styling
  */
-function updateMarkerSelection(): void {
+function updateMarkerSelection(selectedCourtId: number | null): void {
 	// Deselect previous marker
 	if (previouslySelectedId !== null) {
 		const prevMarker = markerMap.get(previouslySelectedId);
@@ -105,14 +105,14 @@ function updateMarkerSelection(): void {
 	}
 
 	// Select new marker
-	if (courtsState.selectedCourtId !== null) {
-		const newMarker = markerMap.get(courtsState.selectedCourtId);
+	if (selectedCourtId !== null) {
+		const newMarker = markerMap.get(selectedCourtId);
 		if (newMarker) {
 			selectMarker(newMarker);
 		}
 	}
 
-	previouslySelectedId = courtsState.selectedCourtId;
+	previouslySelectedId = selectedCourtId;
 }
 
 /**
@@ -124,12 +124,14 @@ export function initMarkerManager(map: maplibregl.Map): () => void {
 
 	// Reactively sync markers when courts change
 	$effect(() => {
-		syncMarkers();
+		const courts = courtsState.courts;
+		syncMarkers(courts);
 	});
 
 	// Reactively update selection when selectedCourtId changes
 	$effect(() => {
-		updateMarkerSelection();
+		const selectedCourtId = courtsState.selectedCourtId;
+		updateMarkerSelection(selectedCourtId);
 	});
 
 	// Return cleanup function
