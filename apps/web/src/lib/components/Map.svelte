@@ -4,7 +4,7 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { onMount } from 'svelte';
 	import type { Court } from '$lib/data/dummyCourts';
-	import * as markerManager from '$lib/map/marker-manager.svelte';
+	import * as markers from '$lib/map/marker-utils.svelte';
 
 	interface MapProps {
 		courts: Court[];
@@ -23,7 +23,7 @@
 
 	let mapContainer: HTMLDivElement;
 	let map: maplibregl.Map;
-	let markers = new Map<number, MarkerData>();
+	let markerMap = new Map<number, MarkerData>();
 	let previouslySelectedId: number | null = null;
 
 	onMount(() => {
@@ -60,7 +60,7 @@
 
 		// Cleanup
 		return () => {
-			markerManager.clearAllMarkers(markers);
+			markers.clearAllMarkers(markerMap);
 			map.remove();
 		};
 	});
@@ -68,16 +68,12 @@
 	// Reactively update markers when courts prop changes
 	$effect(() => {
 		if (!map) return;
-		markerManager.syncMarkers(markers, courts, map, onMarkerClick);
+		markers.syncMarkers(markerMap, courts, map, onMarkerClick);
 	});
 
 	// Update marker selection
 	$effect(() => {
-		previouslySelectedId = markerManager.updateMarkerSelection(
-			markers,
-			selectedCourtId,
-			previouslySelectedId
-		);
+		markers.updateMarkerSelection(markerMap, selectedCourtId, previouslySelectedId);
 	});
 </script>
 
