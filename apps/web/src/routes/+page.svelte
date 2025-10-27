@@ -9,7 +9,7 @@
 
 	// Find the selected court
 	const selectedCourt = $derived(
-		selectedCourtId ? dummyCourts.find((c) => c.id === selectedCourtId) ?? null : null
+		selectedCourtId ? (dummyCourts.find((c) => c.id === selectedCourtId) ?? null) : null
 	);
 
 	const handleMarkerClick = (courtId: number) => {
