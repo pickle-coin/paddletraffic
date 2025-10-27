@@ -3,30 +3,19 @@
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { onMount } from 'svelte';
-	import type { Court } from '$lib/data/dummyCourts';
-	import * as markers from '$lib/map/marker-utils.svelte';
+	import { initMarkerManager } from '$lib/map/MarkerManager.svelte';
 
 	interface MapProps {
-		courts: Court[];
-		selectedCourtId: number | null;
-		onMarkerClick: (courtId: number) => void;
 		children?: any;
 	}
 
-	interface MarkerData {
-		marker: maplibregl.Marker;
-		element: HTMLElement;
-		path: SVGPathElement | null;
-	}
-
-	let { courts, selectedCourtId, onMarkerClick, children }: MapProps = $props();
+	let { children }: MapProps = $props();
 
 	let mapContainer: HTMLDivElement;
 	let map: maplibregl.Map;
-	let markerMap = new Map<number, MarkerData>();
-	let previouslySelectedId: number | null = null;
 
 	onMount(() => {
+		// Initialize the map
 		map = new maplibregl.Map({
 			container: mapContainer,
 			style: {
@@ -58,22 +47,14 @@
 			doubleClickZoom: false // Disable double-tap/double-click zoom
 		});
 
+		// Initialize marker manager (handles all marker reactivity)
+		const cleanupMarkers = initMarkerManager(map);
+
 		// Cleanup
 		return () => {
-			markers.clearAllMarkers(markerMap);
+			cleanupMarkers();
 			map.remove();
 		};
-	});
-
-	// Reactively update markers when courts prop changes
-	$effect(() => {
-		if (!map) return;
-		markers.syncMarkers(markerMap, courts, map, onMarkerClick);
-	});
-
-	// Update marker selection
-	$effect(() => {
-		markers.updateMarkerSelection(markerMap, selectedCourtId, previouslySelectedId);
 	});
 </script>
 

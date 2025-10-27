@@ -2,36 +2,23 @@
 	// main map page following figma design using map component and other features composed together
 	import Map from '$lib/components/Map.svelte';
 	import CourtDrawer from '$lib/components/CourtDrawer.svelte';
-	import { dummyCourts } from '$lib/data/dummyCourts';
+	import { courtsState } from '$lib/stores/courts.svelte';
 
-	let selectedCourtId = $state<number | null>(null);
 	let drawerOpen = $state(false);
 
-	// Find the selected court
-	const selectedCourt = $derived(
-		selectedCourtId ? (dummyCourts.find((c) => c.id === selectedCourtId) ?? null) : null
-	);
-
-	const handleMarkerClick = (courtId: number) => {
-		if (selectedCourtId === courtId) {
-			// Clicking the same marker - deselect and close drawer
-			selectedCourtId = null;
-			drawerOpen = false;
-		} else {
-			// Clicking a different marker - select it and open drawer
-			selectedCourtId = courtId;
-			drawerOpen = true;
-		}
-	};
-
-	// When drawer is closed manually, also deselect the marker
+	// Open drawer when a court is selected, close when deselected
 	$effect(() => {
-		if (!drawerOpen && selectedCourtId !== null) {
-			selectedCourtId = null;
+		drawerOpen = courtsState.selectedCourtId !== null;
+	});
+
+	// When drawer is closed manually, deselect the marker
+	$effect(() => {
+		if (!drawerOpen && courtsState.selectedCourtId !== null) {
+			courtsState.selectCourt(null);
 		}
 	});
 </script>
 
-<Map courts={dummyCourts} {selectedCourtId} onMarkerClick={handleMarkerClick}>
-	<CourtDrawer bind:open={drawerOpen} court={selectedCourt} />
+<Map>
+	<CourtDrawer bind:open={drawerOpen} court={courtsState.selectedCourt} />
 </Map>
