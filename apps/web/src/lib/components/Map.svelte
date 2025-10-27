@@ -1,11 +1,21 @@
 <script lang="ts">
-	// basic map component using maplibre-gl
+	// Pure, reusable map component using maplibre-gl
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { onMount } from 'svelte';
-	import { dummyCourts } from '$lib/data/dummyCourts';
+	import type { Court } from '$lib/data/dummyCourts';
+
+	interface MapProps {
+		courts: Court[];
+		selectedCourtId: number | null;
+		onMarkerClick: (courtId: number) => void;
+		children?: any;
+	}
+
+	let { courts, selectedCourtId, onMarkerClick, children }: MapProps = $props();
 
 	let mapContainer: HTMLDivElement;
+	let markers: Map<number, { marker: maplibregl.Marker; element: HTMLElement }> = new Map();
 
 	onMount(() => {
 		const map = new maplibregl.Map({
@@ -39,21 +49,52 @@
 		});
 
 		// Add markers for each court
-		dummyCourts.forEach((court) => {
-			new maplibregl.Marker()
+		courts.forEach((court) => {
+			// TODO: Future enhancement - color markers based on busyness (green=empty, yellow=some waiting, red=busy)
+			// For now, all markers are green since dummy data has 0 courts occupied
+			const marker = new maplibregl.Marker({ color: '#22c55e' })
 				.setLngLat([court.location.coordinates.lon, court.location.coordinates.lat])
-				.setPopup(
-					new maplibregl.Popup().setHTML(
-						`<strong>${court.name}</strong><br/>
-						${court.location.addressLine}<br/>
-						Courts: ${court.courtCount}`
-					)
-				)
 				.addTo(map);
+
+			// Get the marker's DOM element to add click handler and styling
+			const el = marker.getElement();
+			el.style.cursor = 'pointer';
+
+			// Get the SVG element inside the marker for styling
+			const svg = el.querySelector('svg');
+			if (svg) {
+				svg.style.transition = 'stroke 0.2s ease';
+				svg.style.overflow = 'visible'; // Prevent outline from being clipped
+			}
+
+			el.addEventListener('click', () => {
+				onMarkerClick(court.id);
+			});
+
+			markers.set(court.id, { marker, element: el });
 		});
 	});
 
-	let { children } = $props();
+	// Update marker styles when selection changes
+	$effect(() => {
+		markers.forEach(({ element }, courtId) => {
+			const svg = element.querySelector('svg');
+			if (svg) {
+				const path = svg.querySelector('path');
+				if (path) {
+					if (courtId === selectedCourtId) {
+						// Blue outline effect for selected marker
+						path.setAttribute('stroke', '#3b82f6');
+						path.setAttribute('stroke-width', '3');
+					} else {
+						// No outline for unselected
+						path.setAttribute('stroke', 'none');
+						path.setAttribute('stroke-width', '0');
+					}
+				}
+			}
+		});
+	});
 </script>
 
 <div class="relative m-0 h-screen w-full">
