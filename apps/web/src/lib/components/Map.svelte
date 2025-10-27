@@ -1,13 +1,22 @@
 <script lang="ts">
-	// basic map component using maplibre-gl
+	// Pure, reusable map component using maplibre-gl
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { onMount } from 'svelte';
+	import { initMarkerManager } from '$lib/map/MarkerManager.svelte';
+
+	interface MapProps {
+		children?: any;
+	}
+
+	let { children }: MapProps = $props();
 
 	let mapContainer: HTMLDivElement;
+	let map: maplibregl.Map;
 
 	onMount(() => {
-		const map = new maplibregl.Map({
+		// Initialize the map
+		map = new maplibregl.Map({
 			container: mapContainer,
 			style: {
 				version: 8,
@@ -34,11 +43,19 @@
 				]
 			},
 			center: [-111.891, 40.7608], // Salt Lake City [lng, lat]
-			zoom: 12 // starting zoom
+			zoom: 12, // starting zoom
+			doubleClickZoom: false // Disable double-tap/double-click zoom
 		});
-	});
 
-	let { children } = $props();
+		// Initialize marker manager (handles all marker reactivity)
+		const cleanupMarkers = initMarkerManager(map);
+
+		// Cleanup
+		return () => {
+			cleanupMarkers();
+			map.remove();
+		};
+	});
 </script>
 
 <div class="relative m-0 h-screen w-full">
