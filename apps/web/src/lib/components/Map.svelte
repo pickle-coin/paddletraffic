@@ -19,7 +19,7 @@
 </script>
 
 <div class="relative h-screen w-full m-0">
-	<div bind:this={mapContainer} class="h-screen w-full" />
+	<div bind:this={mapContainer} class="h-screen w-full"></div>
 		
 	{@render children?.()}
 </div>
