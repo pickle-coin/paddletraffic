@@ -15,10 +15,11 @@
 	let { courts, selectedCourtId, onMarkerClick, children }: MapProps = $props();
 
 	let mapContainer: HTMLDivElement;
-	let markers: Map<number, { marker: maplibregl.Marker; element: HTMLElement }> = new Map();
+	let markers: Map<number, { marker: maplibregl.Marker; element: HTMLElement; path: SVGPathElement | null }> = new Map();
+	let map: maplibregl.Map;
 
 	onMount(() => {
-		const map = new maplibregl.Map({
+		map = new maplibregl.Map({
 			container: mapContainer,
 			style: {
 				version: 8,
@@ -45,13 +46,28 @@
 				]
 			},
 			center: [-111.891, 40.7608], // Salt Lake City [lng, lat]
-			zoom: 12 // starting zoom
+			zoom: 12, // starting zoom
+			doubleClickZoom: false // Disable double-tap/double-click zoom
 		});
+
+		// Cleanup
+		return () => {
+			markers.forEach(({ marker }) => marker.remove());
+			markers.clear();
+			map.remove();
+		};
+	});
+
+	// Update markers when courts prop changes
+	$effect(() => {
+		if (!map) return;
+
+		markers.forEach(({ marker }) => marker.remove());
+		markers.clear();
 
 		// Add markers for each court
 		courts.forEach((court) => {
-			// TODO: Future enhancement - color markers based on busyness (green=empty, yellow=some waiting, red=busy)
-			// For now, all markers are green since dummy data has 0 courts occupied
+			// TODO: Color markers based on busyness (green=empty, yellow=some waiting, red=busy)
 			const marker = new maplibregl.Marker({ color: '#22c55e' })
 				.setLngLat([court.location.coordinates.lon, court.location.coordinates.lat])
 				.addTo(map);
@@ -60,8 +76,9 @@
 			const el = marker.getElement();
 			el.style.cursor = 'pointer';
 
-			// Get the SVG element inside the marker for styling
 			const svg = el.querySelector('svg');
+			const path = svg?.querySelector('path') ?? null;
+
 			if (svg) {
 				svg.style.transition = 'stroke 0.2s ease';
 				svg.style.overflow = 'visible'; // Prevent outline from being clipped
@@ -71,26 +88,21 @@
 				onMarkerClick(court.id);
 			});
 
-			markers.set(court.id, { marker, element: el });
+			markers.set(court.id, { marker, element: el, path });
 		});
 	});
 
 	// Update marker styles when selection changes
 	$effect(() => {
-		markers.forEach(({ element }, courtId) => {
-			const svg = element.querySelector('svg');
-			if (svg) {
-				const path = svg.querySelector('path');
-				if (path) {
-					if (courtId === selectedCourtId) {
-						// Blue outline effect for selected marker
-						path.setAttribute('stroke', '#3b82f6');
-						path.setAttribute('stroke-width', '3');
-					} else {
-						// No outline for unselected
-						path.setAttribute('stroke', 'none');
-						path.setAttribute('stroke-width', '0');
-					}
+		markers.forEach(({ path }, courtId) => {
+			if (path) {
+				if (courtId === selectedCourtId) {
+					// Blue selected marker outline
+					path.setAttribute('stroke', '#3b82f6');
+					path.setAttribute('stroke-width', '3');
+				} else {
+					path.setAttribute('stroke', 'none');
+					path.setAttribute('stroke-width', '0');
 				}
 			}
 		});

@@ -22,8 +22,9 @@
 </script>
 
 <Drawer.Root bind:open modal={false}>
-    <Drawer.Overlay class="-z-10 pointer-events-none"/>
-	<Drawer.Content class="h-fit max-h-screen">
+	{#if court}
+		<Drawer.Overlay class="-z-10 pointer-events-none"/>
+		<Drawer.Content class="h-fit max-h-screen">
 		<!-- CSS Gymnastics over here -->
 		<div class="relative m-0 h-0 w-full p-0">
 			<Drawer.Close>
@@ -103,7 +104,8 @@
                 </button>
             </div>
         </div>
-	</Drawer.Content>
+		</Drawer.Content>
+	{/if}
 </Drawer.Root>
 
 <style lang="postcss">

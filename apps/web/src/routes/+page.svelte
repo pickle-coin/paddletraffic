@@ -12,7 +12,6 @@
 		selectedCourtId ? dummyCourts.find((c) => c.id === selectedCourtId) ?? null : null
 	);
 
-	// Handle marker clicks - toggle selection and drawer
 	const handleMarkerClick = (courtId: number) => {
 		if (selectedCourtId === courtId) {
 			// Clicking the same marker - deselect and close drawer
@@ -27,7 +26,7 @@
 
 	// When drawer is closed manually, also deselect the marker
 	$effect(() => {
-		if (!drawerOpen) {
+		if (!drawerOpen && selectedCourtId !== null) {
 			selectedCourtId = null;
 		}
 	});
