@@ -3,6 +3,7 @@
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import { onMount } from 'svelte';
+	import { dummyCourts } from '$lib/data/dummyCourts';
 
 	let mapContainer: HTMLDivElement;
 
@@ -35,6 +36,20 @@
 			},
 			center: [-111.891, 40.7608], // Salt Lake City [lng, lat]
 			zoom: 12 // starting zoom
+		});
+
+		// Add markers for each court
+		dummyCourts.forEach((court) => {
+			new maplibregl.Marker()
+				.setLngLat([court.location.coordinates.lon, court.location.coordinates.lat])
+				.setPopup(
+					new maplibregl.Popup().setHTML(
+						`<strong>${court.name}</strong><br/>
+						${court.location.addressLine}<br/>
+						Courts: ${court.courtCount}`
+					)
+				)
+				.addTo(map);
 		});
 	});
 
