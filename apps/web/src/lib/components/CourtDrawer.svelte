@@ -2,24 +2,23 @@
 	import * as Drawer from '$lib/components/ui/drawer/index';
 	import type { ClassValue } from 'clsx';
 	import { X } from 'lucide-svelte';
-	interface PopupProps {
+	import type { Court } from '$lib/data/dummyCourts';
+
+	interface CourtDrawerProps {
 		class?: ClassValue;
 		open: boolean;
-		title: string;
-		courts_occupied: number;
-		total_courts: number;
-		groups_waiting: number;
-		estimated_wait_time_minutes: number;
+		court: Court | null;
 	}
 
-	let {
-		open = $bindable(),
-		title,
-		courts_occupied,
-        total_courts,
-		groups_waiting,
-		estimated_wait_time_minutes
-	}: PopupProps = $props();
+	let { open = $bindable(), court, class: className }: CourtDrawerProps = $props();
+
+	// Derive display values from court data
+	const title = $derived(court?.name ?? '');
+	const courts_occupied = $derived(court?.status.courtsOccupied ?? 0);
+	const total_courts = $derived(court?.courtCount ?? 0);
+	const groups_waiting = $derived(court?.status.groupsWaiting ?? 0);
+	// TODO: Calculate estimated wait time based on groups waiting and courts available
+	const estimated_wait_time_minutes = $derived(0);
 </script>
 
 <Drawer.Root bind:open modal={false}>
