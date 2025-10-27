@@ -32,7 +32,7 @@ paths:
           $ref: "#/components/responses/InternalServerErrror"
       requestBody:
         required: true
-        description: "Fields required to create a new court"
+        description: Fields required to create a new court
         content:
           application/json:
             schema:
@@ -100,7 +100,7 @@ paths:
           $ref: "#/components/responses/InternalServerErrror"
       requestBody:
         required: true
-        description: ""
+        description: Give the full description of the court object to create a court
         content:
           application/json:
             schema:
@@ -114,7 +114,7 @@ paths:
       responses:
         "200":
           description: The request was successful, and the server has returned the
-            requested resource in the response body.
+            status of the court with id courtId in the response body.
           content:
             application/json:
               schema:
@@ -139,7 +139,7 @@ paths:
       responses:
         "200":
           description: The request was successful, and the server has returned the
-            requested resource in the response body.
+            requested courts which had ids corresponding to the courtIds array.
           content:
             application/json:
               schema:
@@ -163,6 +163,7 @@ paths:
             type: array
             items:
               type: integer
+            example: [1, 2, 4, 9, 3, 17]
           allowReserved: false
   /v1/courts/{courtId}:
     patch:
@@ -183,7 +184,7 @@ paths:
           $ref: "#/components/responses/InternalServerErrror"
       requestBody:
         required: true
-        description: ""
+        description: Update the court with given court ID with object params which will change the court
         content:
           application/json:
             schema:
@@ -218,10 +219,10 @@ components:
       type: object
       properties:
         courtsOccupied:
-          type: number
+          type: integer
           example: 3
         groupsWaiting:
-          type: number
+          type: integer
           example: 5
         lastReport:
           type: string
@@ -229,7 +230,8 @@ components:
           description: ISO 8601 datetime when the last report was made for this court
           example: 2004-11-15
         courtId:
-          type: number
+          type: integer
+          example: 1
       required:
         - courtsOccupied
         - groupsWaiting
@@ -247,13 +249,14 @@ components:
         - status
       properties:
         id:
-          type: number
+          type: integer
+          example: 1
         name:
           type: string
           description: Display name for the court.
           example: City Park Courts - Court 1
         courtCount:
-          type: number
+          type: integer
           example: 4
         location:
           $ref: "#/components/schemas/Location"
@@ -308,6 +311,7 @@ components:
           example: g:ChIJ7aVxnOTHbIcR7H6uG5W4f3E
     Error:
       type: object
+      description: An error object to describe when there is an issue with a request.
       properties:
         code:
           type: string
@@ -316,8 +320,7 @@ components:
           type: string
           example: bbox must be west,south,east,north
         details:
-          description: Optional machine-readable fields for debugging.
-          type: object
+          $ref: "#/components/schemas/Details"
       required:
         - code
         - message
@@ -326,8 +329,10 @@ components:
       properties:
         name:
           type: string
+          example: Hogan Park
         courtCount:
           type: number
+          example: 6
         location:
           $ref: "#/components/schemas/LocationUpdate"
       description: Data transfer object for updating all fields of an existing Court
@@ -336,11 +341,14 @@ components:
         baseSchemaName: Court
     Report:
       type: object
+      description: A report which a user can make to contribute the the status of a court
       properties:
         courtsOccupied:
-          type: number
+          type: integer
+          example: 4
         groupsWaiting:
-          type: number
+          type: integer
+          example: 3
       required:
         - courtsOccupied
         - groupsWaiting
@@ -349,8 +357,10 @@ components:
       properties:
         name:
           type: string
+          example: Flat Iron Park
         courtCount:
-          type: number
+          type: integer
+          example: 8
         location:
           $ref: "#/components/schemas/Location"
       required:
@@ -375,7 +385,7 @@ components:
           example: crt_01J8ABCDEF23456789
         name:
           type: string
-          description: Display name for the court.
+          description: Display name for the court summary.
           example: City Park Courts - Court 1
         courtCount:
           type: number
@@ -396,17 +406,24 @@ components:
       properties:
         page:
           type: integer
+          example: 1
           minimum: 0
         pageSize:
           type: integer
+          example: 50
           minimum: 1
         totalItems:
           type: integer
+          example: 2267
           minimum: 0
         totalPages:
           type: integer
+          example: 46
           minimum: 0
-        data: {}
+        data:
+          type: array
+          description: Payload items (defined by concrete subtype)
+          example: []
     PaginatedCourt:
       allOf:
         - $ref: "#/components/schemas/PaginatedBase"
@@ -417,39 +434,96 @@ components:
               items:
                 $ref: "#/components/schemas/Court"
       description: Paginated list of Courts
+      # Examples for allOf defined schemas must be manually defined because of openapi semantics
+      example:
+        page: 1
+        pageSize: 2
+        totalItems: 3
+        totalPages: 2
+        data:
+          - id: 1
+            name: City Park Courts - Court 1
+            courtCount: 4
+            location:
+              addressLine: 1700 N York St
+              countryCode: US
+              timezone: America/Denver
+              coordinates:
+                lat: 39.7474
+                lon: -104.955
+            status:
+              courtsOccupied: 3
+              groupsWaiting: 5
+              lastReport: '2004-11-15'
+              courtId: 1
+          - id: 2
+            name: East High School Courts # Note: This example Court had to be created manually
+            courtCount: 6
+            location:
+              addressLine: 1600 City Park Esplanade
+              region: CO
+              postalCode: '80202'
+              countryCode: US
+              timezone: America/Denver
+              coordinates:
+                lat: 39.7400
+                lon: -104.965
+              placeId: 'g:AnotherPlaceId'
+            status:
+              courtsOccupied: 1
+              groupsWaiting: 0
+              lastReport: '2025-10-20T14:30:00Z'
+              courtId: 2
     LocationUpdate:
       type: object
       properties:
         addressLine:
           type: string
+          example: 750 W 1500 S, Woods Cross
         region:
           type: string
+          example: United States
         postalCode:
           type: string
+          example: "84087"
         countryCode:
           type: string
+          example: "+1"
         timezone:
           type: string
+          example: GMT-6
         coordinates:
           type: object
           properties:
             lat:
               type: number
+              example: 41.12094329124075
             lon:
               type: number
+              example: -112.03101155429637
         placeId:
           type: string
-      description: Data transfer object for updating all fields of an existing
-        Location (PUT operation).
+          example: ChIJST6qpIL3UocR0ndrAgQfGXc
+      description: Data transfer object for updating all fields of an existing Location (PUT operation).
       x-fiddle-dto-info:
         baseSchemaName: Location
+    Details:
+      type: object
+      properties:
+        description:
+          type: string
+          example: The endpoint `/v1/beans/aaron` does not exist
+      required:
+        - description
+      description: Details of an error object
   parameters:
     courtId:
       name: courtId
+      description: ID to identify a given group of courts
       in: path
       required: true
       schema:
-        type: number
+        type: integer
   responses:
     BadRequest:
       description: The server could not understand the request due to invalid syntax.
