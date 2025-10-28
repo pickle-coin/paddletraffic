@@ -15,11 +15,32 @@ const CreateCourt = `-- name: CreateCourt :one
 WITH new_location AS (
   INSERT INTO location (address_line, country_code, timezone, lat, lon, region, postal_code, place_id)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-  RETURNING id
+  RETURNING id, address_line, country_code, timezone, lat, lon, region, postal_code, place_id, created_at, updated_at
+), new_court AS (
+  INSERT INTO court (location_id, name, court_count)
+  VALUES ((SELECT id FROM new_location), $9, $10)
+  RETURNING id, location_id, name, court_count, created_at, updated_at
 )
-INSERT INTO court (location_id, name, court_count)
-VALUES ((SELECT id FROM new_location), $9, $10)
-RETURNING id, location_id, name, court_count, created_at, updated_at
+SELECT
+  c.id as court_id,
+  c.location_id,
+  c.name as court_name,
+  c.court_count,
+  c.created_at as court_created_at,
+  c.updated_at as court_updated_at,
+  l.id as location_id_val,
+  l.address_line,
+  l.country_code,
+  l.timezone,
+  l.lat,
+  l.lon,
+  l.region,
+  l.postal_code,
+  l.place_id,
+  l.created_at as location_created_at,
+  l.updated_at as location_updated_at
+FROM new_court c
+CROSS JOIN new_location l
 `
 
 type CreateCourtParams struct {
@@ -35,7 +56,27 @@ type CreateCourtParams struct {
 	CourtCount  int32          `json:"court_count"`
 }
 
-func (q *Queries) CreateCourt(ctx context.Context, arg CreateCourtParams) (Court, error) {
+type CreateCourtRow struct {
+	CourtID           int64              `json:"court_id"`
+	LocationID        int64              `json:"location_id"`
+	CourtName         string             `json:"court_name"`
+	CourtCount        int32              `json:"court_count"`
+	CourtCreatedAt    pgtype.Timestamptz `json:"court_created_at"`
+	CourtUpdatedAt    pgtype.Timestamptz `json:"court_updated_at"`
+	LocationIDVal     int64              `json:"location_id_val"`
+	AddressLine       string             `json:"address_line"`
+	CountryCode       string             `json:"country_code"`
+	Timezone          string             `json:"timezone"`
+	Lat               pgtype.Numeric     `json:"lat"`
+	Lon               pgtype.Numeric     `json:"lon"`
+	Region            pgtype.Text        `json:"region"`
+	PostalCode        pgtype.Text        `json:"postal_code"`
+	PlaceID           pgtype.Text        `json:"place_id"`
+	LocationCreatedAt pgtype.Timestamptz `json:"location_created_at"`
+	LocationUpdatedAt pgtype.Timestamptz `json:"location_updated_at"`
+}
+
+func (q *Queries) CreateCourt(ctx context.Context, arg CreateCourtParams) (CreateCourtRow, error) {
 	row := q.db.QueryRow(ctx, CreateCourt,
 		arg.AddressLine,
 		arg.CountryCode,
@@ -48,39 +89,100 @@ func (q *Queries) CreateCourt(ctx context.Context, arg CreateCourtParams) (Court
 		arg.Name,
 		arg.CourtCount,
 	)
-	var i Court
+	var i CreateCourtRow
 	err := row.Scan(
-		&i.ID,
+		&i.CourtID,
 		&i.LocationID,
-		&i.Name,
+		&i.CourtName,
 		&i.CourtCount,
-		&i.CreatedAt,
-		&i.UpdatedAt,
+		&i.CourtCreatedAt,
+		&i.CourtUpdatedAt,
+		&i.LocationIDVal,
+		&i.AddressLine,
+		&i.CountryCode,
+		&i.Timezone,
+		&i.Lat,
+		&i.Lon,
+		&i.Region,
+		&i.PostalCode,
+		&i.PlaceID,
+		&i.LocationCreatedAt,
+		&i.LocationUpdatedAt,
 	)
 	return i, err
 }
 
 const GetAllCourts = `-- name: GetAllCourts :many
-SELECT id, location_id, name, court_count, created_at, updated_at FROM court
-ORDER BY created_at DESC
+SELECT
+  c.id as court_id,
+  c.location_id,
+  c.name as court_name,
+  c.court_count,
+  c.created_at as court_created_at,
+  c.updated_at as court_updated_at,
+  l.id as location_id_val,
+  l.address_line,
+  l.country_code,
+  l.timezone,
+  l.lat,
+  l.lon,
+  l.region,
+  l.postal_code,
+  l.place_id,
+  l.created_at as location_created_at,
+  l.updated_at as location_updated_at
+FROM court c
+INNER JOIN location l ON c.location_id = l.id
+ORDER BY c.created_at DESC
 `
 
-func (q *Queries) GetAllCourts(ctx context.Context) ([]Court, error) {
+type GetAllCourtsRow struct {
+	CourtID           int64              `json:"court_id"`
+	LocationID        int64              `json:"location_id"`
+	CourtName         string             `json:"court_name"`
+	CourtCount        int32              `json:"court_count"`
+	CourtCreatedAt    pgtype.Timestamptz `json:"court_created_at"`
+	CourtUpdatedAt    pgtype.Timestamptz `json:"court_updated_at"`
+	LocationIDVal     int64              `json:"location_id_val"`
+	AddressLine       string             `json:"address_line"`
+	CountryCode       string             `json:"country_code"`
+	Timezone          string             `json:"timezone"`
+	Lat               pgtype.Numeric     `json:"lat"`
+	Lon               pgtype.Numeric     `json:"lon"`
+	Region            pgtype.Text        `json:"region"`
+	PostalCode        pgtype.Text        `json:"postal_code"`
+	PlaceID           pgtype.Text        `json:"place_id"`
+	LocationCreatedAt pgtype.Timestamptz `json:"location_created_at"`
+	LocationUpdatedAt pgtype.Timestamptz `json:"location_updated_at"`
+}
+
+func (q *Queries) GetAllCourts(ctx context.Context) ([]GetAllCourtsRow, error) {
 	rows, err := q.db.Query(ctx, GetAllCourts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Court{}
+	items := []GetAllCourtsRow{}
 	for rows.Next() {
-		var i Court
+		var i GetAllCourtsRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.CourtID,
 			&i.LocationID,
-			&i.Name,
+			&i.CourtName,
 			&i.CourtCount,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.CourtCreatedAt,
+			&i.CourtUpdatedAt,
+			&i.LocationIDVal,
+			&i.AddressLine,
+			&i.CountryCode,
+			&i.Timezone,
+			&i.Lat,
+			&i.Lon,
+			&i.Region,
+			&i.PostalCode,
+			&i.PlaceID,
+			&i.LocationCreatedAt,
+			&i.LocationUpdatedAt,
 		); err != nil {
 			return nil, err
 		}

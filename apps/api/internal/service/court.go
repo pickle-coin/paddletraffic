@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"paddletraffic/internal/database/generated/db"
+	"paddletraffic/internal/dto"
 	"paddletraffic/internal/repository"
 )
 
@@ -15,10 +15,12 @@ func NewCourtService(repo *repository.CourtRepository) *CourtService {
 	return &CourtService{repo: repo}
 }
 
-func (s *CourtService) Create(ctx context.Context, params db.CreateCourtParams) (db.Court, error) {
-	return s.repo.Create(ctx, params)
+// Create creates a new court with its location and returns the full CourtSummary in a single database call
+func (s *CourtService) Create(ctx context.Context, courtCreate dto.CourtCreate) (dto.CourtSummary, error) {
+	return s.repo.Create(ctx, courtCreate)
 }
 
-func (s *CourtService) GetAll(ctx context.Context) ([]db.Court, error) {
+// GetAll returns all courts with their location data
+func (s *CourtService) GetAll(ctx context.Context) ([]dto.CourtSummary, error) {
 	return s.repo.GetAll(ctx)
 }

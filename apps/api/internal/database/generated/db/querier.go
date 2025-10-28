@@ -9,8 +9,8 @@ import (
 )
 
 type Querier interface {
-	CreateCourt(ctx context.Context, arg CreateCourtParams) (Court, error)
-	GetAllCourts(ctx context.Context) ([]Court, error)
+	CreateCourt(ctx context.Context, arg CreateCourtParams) (CreateCourtRow, error)
+	GetAllCourts(ctx context.Context) ([]GetAllCourtsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
