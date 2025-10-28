@@ -47,82 +47,62 @@ func CourtCreateDTOToParams(courtDTO dto.CourtCreate) (db.CreateCourtParams, err
 }
 
 func CreateCourtRowToCourtSummary(row db.CreateCourtRow) (dto.CourtSummary, error) {
-	lat, err := numericToFloat64(row.Lat)
-	if err != nil {
-		return dto.CourtSummary{}, fmt.Errorf("invalid latitude in database: %w", err)
-	}
-
-	lon, err := numericToFloat64(row.Lon)
-	if err != nil {
-		return dto.CourtSummary{}, fmt.Errorf("invalid longitude in database: %w", err)
-	}
-
-	summary := dto.CourtSummary{
-		ID:         row.CourtID,
-		Name:       row.CourtName,
-		CourtCount: row.CourtCount,
-		Location: dto.Location{
-			AddressLine: row.AddressLine,
-			CountryCode: row.CountryCode,
-			Timezone:    row.Timezone,
-			Coordinates: dto.Coordinates{
-				Lat: lat,
-				Lon: lon,
-			},
-		},
-	}
-
-	if row.Region.Valid {
-		summary.Location.Region = &row.Region.String
-	}
-
-	if row.PostalCode.Valid {
-		summary.Location.PostalCode = &row.PostalCode.String
-	}
-
-	if row.PlaceID.Valid {
-		summary.Location.PlaceID = &row.PlaceID.String
-	}
-
-	return summary, nil
+	return buildCourtSummary(
+		row.CourtID, row.CourtName, row.CourtCount,
+		row.AddressLine, row.CountryCode, row.Timezone,
+		row.Lat, row.Lon, row.Region, row.PostalCode, row.PlaceID,
+	)
 }
 
 func GetAllCourtsRowToCourtSummary(row db.GetAllCourtsRow) (dto.CourtSummary, error) {
-	lat, err := numericToFloat64(row.Lat)
+	return buildCourtSummary(
+		row.CourtID, row.CourtName, row.CourtCount,
+		row.AddressLine, row.CountryCode, row.Timezone,
+		row.Lat, row.Lon, row.Region, row.PostalCode, row.PlaceID,
+	)
+}
+
+func buildCourtSummary(
+	courtID int64, courtName string, courtCount int32,
+	addressLine, countryCode, timezone string,
+	lat, lon pgtype.Numeric,
+	region, postalCode, placeID pgtype.Text,
+) (dto.CourtSummary, error) {
+	latFloat, err := numericToFloat64(lat)
 	if err != nil {
 		return dto.CourtSummary{}, fmt.Errorf("invalid latitude in database: %w", err)
 	}
 
-	lon, err := numericToFloat64(row.Lon)
+	lonFloat, err := numericToFloat64(lon)
 	if err != nil {
 		return dto.CourtSummary{}, fmt.Errorf("invalid longitude in database: %w", err)
 	}
 
 	summary := dto.CourtSummary{
-		ID:         row.CourtID,
-		Name:       row.CourtName,
-		CourtCount: row.CourtCount,
+		ID:         courtID,
+		Name:       courtName,
+		CourtCount: courtCount,
 		Location: dto.Location{
-			AddressLine: row.AddressLine,
-			CountryCode: row.CountryCode,
-			Timezone:    row.Timezone,
+			AddressLine: addressLine,
+			CountryCode: countryCode,
+			Timezone:    timezone,
 			Coordinates: dto.Coordinates{
-				Lat: lat,
-				Lon: lon,
+				Lat: latFloat,
+				Lon: lonFloat,
 			},
 		},
 	}
 
-	if row.Region.Valid {
-		summary.Location.Region = &row.Region.String
+	if region.Valid {
+		summary.Location.Region = &region.String
 	}
 
-	if row.PostalCode.Valid {
-		summary.Location.PostalCode = &row.PostalCode.String
+	if postalCode.Valid {
+		summary.Location.PostalCode = &postalCode.String
 	}
 
-	if row.PlaceID.Valid {
-		summary.Location.PlaceID = &row.PlaceID.String
+	if placeID.Valid {
+		summary.Location.PlaceID = &placeID.String
 	}
 
 	return summary, nil

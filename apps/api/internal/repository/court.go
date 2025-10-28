@@ -8,15 +8,15 @@ import (
 	"paddletraffic/internal/mapper"
 )
 
-type CourtRepository struct {
+type courtRepositoryImpl struct {
 	queries *db.Queries
 }
 
-func NewCourtRepository(queries *db.Queries) *CourtRepository {
-	return &CourtRepository{queries: queries}
+func NewCourtRepository(queries *db.Queries) CourtRepository {
+	return &courtRepositoryImpl{queries: queries}
 }
 
-func (r *CourtRepository) Create(ctx context.Context, courtCreate dto.CourtCreate) (dto.CourtSummary, error) {
+func (r *courtRepositoryImpl) Create(ctx context.Context, courtCreate dto.CourtCreate) (dto.CourtSummary, error) {
 	params, err := mapper.CourtCreateDTOToParams(courtCreate)
 	if err != nil {
 		return dto.CourtSummary{}, err
@@ -30,7 +30,7 @@ func (r *CourtRepository) Create(ctx context.Context, courtCreate dto.CourtCreat
 	return mapper.CreateCourtRowToCourtSummary(row)
 }
 
-func (r *CourtRepository) GetAll(ctx context.Context, params dto.PaginationParams) (dto.Paginated[dto.CourtSummary], error) {
+func (r *courtRepositoryImpl) GetAll(ctx context.Context, params dto.PaginationParams) (dto.Paginated[dto.CourtSummary], error) {
 	totalCount, err := r.queries.CountCourts(ctx)
 	if err != nil {
 		return dto.Paginated[dto.CourtSummary]{}, err

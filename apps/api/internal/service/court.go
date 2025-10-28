@@ -8,10 +8,10 @@ import (
 )
 
 type CourtService struct {
-	repo *repository.CourtRepository
+	repo repository.CourtRepository
 }
 
-func NewCourtService(repo *repository.CourtRepository) *CourtService {
+func NewCourtService(repo repository.CourtRepository) *CourtService {
 	return &CourtService{repo: repo}
 }
 

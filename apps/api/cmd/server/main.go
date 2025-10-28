@@ -2,32 +2,35 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
-	"paddletraffic/internal/controller"
+	"paddletraffic/internal/api/handler"
+	"paddletraffic/internal/api/middleware"
+	"paddletraffic/internal/config"
 	"paddletraffic/internal/database/generated/db"
 	"paddletraffic/internal/repository"
 	"paddletraffic/internal/service"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func runMigrations(dbURL string) error {
+func runMigrations(dbURL, migrationPath string) error {
 	migrationURL := strings.Replace(dbURL, "postgresql://", "pgx5://", 1)
 	migrationURL = strings.Replace(migrationURL, "postgres://", "pgx5://", 1)
 
-	m, err := migrate.New(
-		"file://internal/database/migrations",
-		migrationURL,
-	)
+	m, err := migrate.New(migrationPath, migrationURL)
 	if err != nil {
 		return err
 	}
@@ -41,13 +44,20 @@ func runMigrations(dbURL string) error {
 }
 
 func main() {
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		log.Fatal("DATABASE_URL environment variable is required")
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("Failed to load configuration:", err)
 	}
 
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, dbURL)
+	poolConfig, err := pgxpool.ParseConfig(cfg.Database.URL)
+	if err != nil {
+		log.Fatal("Failed to parse database config:", err)
+	}
+
+	poolConfig.MaxConns = int32(cfg.Database.MaxConnections)
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -58,7 +68,7 @@ func main() {
 	}
 	log.Println("Database connected successfully")
 
-	if err := runMigrations(dbURL); err != nil {
+	if err := runMigrations(cfg.Database.URL, cfg.Database.MigrationPath); err != nil {
 		log.Fatal("Failed to run migrations:", err)
 	}
 	log.Println("Migrations completed successfully")
@@ -67,21 +77,47 @@ func main() {
 
 	courtRepo := repository.NewCourtRepository(queries)
 	courtService := service.NewCourtService(courtRepo)
-	courtController := controller.NewCourtController(courtService)
-	healthController := controller.NewHealthController(pool)
+	courtHandler := handler.NewCourtHandler(courtService)
+	healthHandler := handler.NewHealthHandler(pool)
 
 	r := chi.NewRouter()
 
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	r.Use(chimiddleware.Logger)
+	r.Use(chimiddleware.Recoverer)
+	r.Use(chimiddleware.RequestID)
+	r.Use(chimiddleware.RealIP)
+	r.Use(middleware.Timeout(30 * time.Second))
 
-	healthController.RegisterRoutes(r)
-	courtController.RegisterRoutes(r)
+	healthHandler.RegisterRoutes(r)
+	courtHandler.RegisterRoutes(r)
 
-	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		log.Fatal("Failed to start server:", err)
+	server := &http.Server{
+		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),
+		Handler:      r,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
+
+	go func() {
+		log.Printf("Server starting on :%s", cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("Server error:", err)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	<-sigChan
+
+	log.Println("Shutting down server gracefully...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+
+	log.Println("Server exited")
 }
