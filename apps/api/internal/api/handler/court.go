@@ -1,11 +1,11 @@
 package handler
 
 import (
+	"net/http"
 	"paddletraffic/internal/api/response"
 	"paddletraffic/internal/dto"
 	"paddletraffic/internal/service"
 	"paddletraffic/internal/validator"
-	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
