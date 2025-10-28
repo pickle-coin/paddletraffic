@@ -19,8 +19,10 @@ func NewHealthController(pool *pgxpool.Pool) *HealthController {
 }
 
 func (h *HealthController) RegisterRoutes(r chi.Router) {
-	r.Get("/health", h.Health)
-	r.Get("/health/ready", h.Ready)
+	r.Route("/v1/health", func(r chi.Router) {
+		r.Get("/", h.Health)
+		r.Get("/ready", h.Ready)
+	})
 }
 
 type HealthResponse struct {
