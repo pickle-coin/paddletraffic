@@ -6,6 +6,8 @@ import (
 
 	"paddletraffic/internal/database/generated/db"
 	"paddletraffic/internal/service"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type CourtController struct {
@@ -16,19 +18,11 @@ func NewCourtController(service *service.CourtService) *CourtController {
 	return &CourtController{service: service}
 }
 
-func (c *CourtController) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/v1/courts", c.handleCourts)
-}
-
-func (c *CourtController) handleCourts(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		c.GetAll(w, r)
-	case http.MethodPost:
-		c.Create(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
+func (c *CourtController) RegisterRoutes(r chi.Router) {
+	r.Route("/v1/courts", func(r chi.Router) {
+		r.Get("/", c.GetAll)
+		r.Post("/", c.Create)
+	})
 }
 
 func (c *CourtController) Create(w http.ResponseWriter, r *http.Request) {

@@ -12,6 +12,8 @@ import (
 	"paddletraffic/internal/repository"
 	"paddletraffic/internal/service"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -74,13 +76,21 @@ func main() {
 	courtService := service.NewCourtService(courtRepo)
 	courtController := controller.NewCourtController(courtService)
 
+	// Setup chi router
+	r := chi.NewRouter()
+
+	// Middleware
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+
 	// Setup routes
-	mux := http.NewServeMux()
-	courtController.RegisterRoutes(mux)
+	courtController.RegisterRoutes(r)
 
 	// Start server
 	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
