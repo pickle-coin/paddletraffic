@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"paddletraffic/internal/dto"
 	"paddletraffic/internal/service"
@@ -50,12 +51,29 @@ func (c *CourtController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CourtController) GetAll(w http.ResponseWriter, r *http.Request) {
-	courts, err := c.service.GetAll(r.Context())
+	page := dto.DefaultPage
+	pageSize := dto.DefaultPageSize
+
+	if pageParam := r.URL.Query().Get("page"); pageParam != "" {
+		if p, err := strconv.Atoi(pageParam); err == nil {
+			page = p
+		}
+	}
+
+	if pageSizeParam := r.URL.Query().Get("pageSize"); pageSizeParam != "" {
+		if ps, err := strconv.Atoi(pageSizeParam); err == nil {
+			pageSize = ps
+		}
+	}
+
+	params := dto.NewPaginationParams(page, pageSize)
+
+	paginatedCourts, err := c.service.GetAll(r.Context(), params)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(courts)
+	json.NewEncoder(w).Encode(paginatedCourts)
 }

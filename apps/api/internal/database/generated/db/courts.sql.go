@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const CountCourts = `-- name: CountCourts :one
+SELECT COUNT(*) FROM court
+`
+
+func (q *Queries) CountCourts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, CountCourts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const CreateCourt = `-- name: CreateCourt :one
 WITH new_location AS (
   INSERT INTO location (address_line, country_code, timezone, lat, lon, region, postal_code, place_id)
@@ -134,7 +145,13 @@ SELECT
 FROM court c
 INNER JOIN location l ON c.location_id = l.id
 ORDER BY c.created_at DESC
+LIMIT $1 OFFSET $2
 `
+
+type GetAllCourtsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type GetAllCourtsRow struct {
 	CourtID           int64              `json:"court_id"`
@@ -156,8 +173,8 @@ type GetAllCourtsRow struct {
 	LocationUpdatedAt pgtype.Timestamptz `json:"location_updated_at"`
 }
 
-func (q *Queries) GetAllCourts(ctx context.Context) ([]GetAllCourtsRow, error) {
-	rows, err := q.db.Query(ctx, GetAllCourts)
+func (q *Queries) GetAllCourts(ctx context.Context, arg GetAllCourtsParams) ([]GetAllCourtsRow, error) {
+	rows, err := q.db.Query(ctx, GetAllCourts, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

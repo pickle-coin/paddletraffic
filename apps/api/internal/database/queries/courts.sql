@@ -50,4 +50,8 @@ SELECT
   l.updated_at as location_updated_at
 FROM court c
 INNER JOIN location l ON c.location_id = l.id
-ORDER BY c.created_at DESC;
+ORDER BY c.created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountCourts :one
+SELECT COUNT(*) FROM court;

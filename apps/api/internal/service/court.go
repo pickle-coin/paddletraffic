@@ -19,6 +19,6 @@ func (s *CourtService) Create(ctx context.Context, courtCreate dto.CourtCreate) 
 	return s.repo.Create(ctx, courtCreate)
 }
 
-func (s *CourtService) GetAll(ctx context.Context) ([]dto.CourtSummary, error) {
-	return s.repo.GetAll(ctx)
+func (s *CourtService) GetAll(ctx context.Context, params dto.PaginationParams) (dto.Paginated[dto.CourtSummary], error) {
+	return s.repo.GetAll(ctx, params)
 }
