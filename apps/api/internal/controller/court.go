@@ -6,6 +6,7 @@ import (
 
 	"paddletraffic/internal/dto"
 	"paddletraffic/internal/service"
+	"paddletraffic/internal/validator"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -25,7 +26,6 @@ func (c *CourtController) RegisterRoutes(r chi.Router) {
 	})
 }
 
-// Create handles POST /v1/courts - Creates a new court with its location
 func (c *CourtController) Create(w http.ResponseWriter, r *http.Request) {
 	var courtCreate dto.CourtCreate
 	if err := json.NewDecoder(r.Body).Decode(&courtCreate); err != nil {
@@ -33,29 +33,8 @@ func (c *CourtController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate required fields
-	if courtCreate.Name == "" {
-		http.Error(w, "name is required", http.StatusBadRequest)
-		return
-	}
-	if courtCreate.CourtCount <= 0 {
-		http.Error(w, "courtCount must be greater than 0", http.StatusBadRequest)
-		return
-	}
-	if courtCreate.Location.AddressLine == "" {
-		http.Error(w, "location.addressLine is required", http.StatusBadRequest)
-		return
-	}
-	if courtCreate.Location.CountryCode == "" {
-		http.Error(w, "location.countryCode is required", http.StatusBadRequest)
-		return
-	}
-	if len(courtCreate.Location.CountryCode) != 2 {
-		http.Error(w, "location.countryCode must be 2 characters (ISO 3166-1 alpha-2)", http.StatusBadRequest)
-		return
-	}
-	if courtCreate.Location.Timezone == "" {
-		http.Error(w, "location.timezone is required", http.StatusBadRequest)
+	if err := validator.ValidateCourtCreate(courtCreate); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

@@ -10,7 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// CourtCreateDTOToParams converts a CourtCreate DTO to CreateCourtParams for the database
 func CourtCreateDTOToParams(courtDTO dto.CourtCreate) (db.CreateCourtParams, error) {
 	params := db.CreateCourtParams{
 		Name:        courtDTO.Name,
@@ -20,7 +19,6 @@ func CourtCreateDTOToParams(courtDTO dto.CourtCreate) (db.CreateCourtParams, err
 		Timezone:    courtDTO.Location.Timezone,
 	}
 
-	// Convert coordinates to pgtype.Numeric
 	lat := pgtype.Numeric{}
 	if err := lat.Scan(fmt.Sprintf("%f", courtDTO.Location.Coordinates.Lat)); err != nil {
 		return params, fmt.Errorf("invalid latitude: %w", err)
@@ -33,7 +31,6 @@ func CourtCreateDTOToParams(courtDTO dto.CourtCreate) (db.CreateCourtParams, err
 	}
 	params.Lon = lon
 
-	// Handle optional fields
 	if courtDTO.Location.Region != nil {
 		params.Region = pgtype.Text{String: *courtDTO.Location.Region, Valid: true}
 	}
@@ -49,9 +46,7 @@ func CourtCreateDTOToParams(courtDTO dto.CourtCreate) (db.CreateCourtParams, err
 	return params, nil
 }
 
-// CreateCourtRowToCourtSummary converts a CreateCourtRow to a CourtSummary DTO
 func CreateCourtRowToCourtSummary(row db.CreateCourtRow) (dto.CourtSummary, error) {
-	// Convert pgtype.Numeric to float64
 	lat, err := numericToFloat64(row.Lat)
 	if err != nil {
 		return dto.CourtSummary{}, fmt.Errorf("invalid latitude in database: %w", err)
@@ -77,7 +72,6 @@ func CreateCourtRowToCourtSummary(row db.CreateCourtRow) (dto.CourtSummary, erro
 		},
 	}
 
-	// Handle optional fields
 	if row.Region.Valid {
 		summary.Location.Region = &row.Region.String
 	}
@@ -93,9 +87,7 @@ func CreateCourtRowToCourtSummary(row db.CreateCourtRow) (dto.CourtSummary, erro
 	return summary, nil
 }
 
-// GetAllCourtsRowToCourtSummary converts a GetAllCourtsRow to a CourtSummary DTO
 func GetAllCourtsRowToCourtSummary(row db.GetAllCourtsRow) (dto.CourtSummary, error) {
-	// Convert pgtype.Numeric to float64
 	lat, err := numericToFloat64(row.Lat)
 	if err != nil {
 		return dto.CourtSummary{}, fmt.Errorf("invalid latitude in database: %w", err)
@@ -121,7 +113,6 @@ func GetAllCourtsRowToCourtSummary(row db.GetAllCourtsRow) (dto.CourtSummary, er
 		},
 	}
 
-	// Handle optional fields
 	if row.Region.Valid {
 		summary.Location.Region = &row.Region.String
 	}
@@ -137,7 +128,6 @@ func GetAllCourtsRowToCourtSummary(row db.GetAllCourtsRow) (dto.CourtSummary, er
 	return summary, nil
 }
 
-// numericToFloat64 converts a pgtype.Numeric to float64
 func numericToFloat64(n pgtype.Numeric) (float64, error) {
 	if !n.Valid {
 		return 0, fmt.Errorf("numeric value is null")
