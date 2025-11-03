@@ -11,6 +11,8 @@ import (
 type Querier interface {
 	CountCourts(ctx context.Context) (int64, error)
 	CreateCourt(ctx context.Context, arg CreateCourtParams) (CreateCourtRow, error)
+	// Inserts a new report record into the 'report' table, returning the full new row.
+	CreateReport(ctx context.Context, arg CreateReportParams) (Report, error)
 	GetAllCourts(ctx context.Context, arg GetAllCourtsParams) ([]GetAllCourtsRow, error)
 }
 

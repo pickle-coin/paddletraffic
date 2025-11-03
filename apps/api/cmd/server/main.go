@@ -80,6 +80,10 @@ func main() {
 	courtHandler := handler.NewCourtHandler(courtService)
 	healthHandler := handler.NewHealthHandler(pool)
 
+	reportRepo := repository.NewReportRepository(queries)
+	reportService := service.NewReportService(reportRepo)
+	reportHandler := handler.NewReportHandler(reportService)
+
 	r := chi.NewRouter()
 
 	r.Use(chimiddleware.Logger)
