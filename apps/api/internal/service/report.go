@@ -8,13 +8,13 @@ import (
 )
 
 type ReportService struct {
-	repo repository.CourtRepository
+	repo repository.ReportRepository
 }
 
-func NewReportService(repo repository.CourtRepository) *ReportService {
+func NewReportService(repo repository.ReportRepository) *ReportService {
 	return &ReportService{repo: repo}
 }
 
-func (s *ReportService) Create(ctx context.Context, courtCreate dto.CourtCreate) (dto.ReportSummary, error) {
-	return s.repo.Create(ctx, courtCreate)
+func (s *ReportService) Create(ctx context.Context, reportCreate dto.ReportCreate) (dto.ReportSummary, error) {
+	return s.repo.Create(ctx, reportCreate)
 }

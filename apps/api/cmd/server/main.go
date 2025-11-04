@@ -94,6 +94,7 @@ func main() {
 
 	healthHandler.RegisterRoutes(r)
 	courtHandler.RegisterRoutes(r)
+	reportHandler.RegisterRoutes(r)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),

@@ -13,5 +13,5 @@ type CourtRepository interface {
 }
 
 type ReportRepository interface {
-	Create(ctx context.Context, reportCreate dto.ReportCreate) (dto.CourtStatus, error)
+	Create(ctx context.Context, reportCreate dto.ReportCreate) (dto.ReportSummary, error)
 }

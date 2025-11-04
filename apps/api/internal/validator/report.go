@@ -13,9 +13,9 @@ func ValidateReportCreate(reportCreate dto.ReportCreate) error {
 	// 	return ValidationError{Field: "courtCount", Message: "must be greater than 0"}
 	// }
 
-	if err := ValidateLocation(courtCreate.Location); err != nil {
-		return err
-	}
+	// if err := ValidateLocation(courtCreate.Location); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

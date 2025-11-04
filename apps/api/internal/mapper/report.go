@@ -14,3 +14,13 @@ func ReportCreateDTOToParams(reportDTO dto.ReportCreate) (db.CreateReportParams,
 
 	return params, nil
 }
+
+func CreateReportRowToReportSummary(row db.Report) (dto.ReportSummary, error) {
+	summary := dto.ReportSummary{
+		ID:             row.ID,
+		CourtID:        row.CourtID,
+		CourtsOccupied: row.CourtsOccupied,
+		GroupsWaiting:  row.GroupsWaiting,
+	}
+	return summary, nil
+}
