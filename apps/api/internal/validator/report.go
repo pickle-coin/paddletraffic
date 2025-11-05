@@ -5,11 +5,21 @@ import (
 )
 
 func ValidateReportCreate(reportCreate dto.ReportCreate) error {
-	if reportCreate.CourtsOccupied < 0 {
+	if reportCreate.CourtID == nil {
+		return ValidationError{Field: "court_id", Message: "must include field"}
+	}
+	if reportCreate.CourtsOccupied == nil {
+		return ValidationError{Field: "courts_occupied", Message: "must include field"}
+	}
+	if reportCreate.GroupsWaiting == nil {
+		return ValidationError{Field: "groups_waiting", Message: "must include field"}
+	}
+
+	if *reportCreate.CourtsOccupied < 0 {
 		return ValidationError{Field: "courts_occupied", Message: "must be positive"}
 	}
 
-	if reportCreate.GroupsWaiting < 0 {
+	if *reportCreate.GroupsWaiting < 0 {
 		return ValidationError{Field: "groups_waiting", Message: "must be positive"}
 	}
 
