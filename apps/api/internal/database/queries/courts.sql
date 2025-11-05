@@ -55,3 +55,6 @@ LIMIT $1 OFFSET $2;
 
 -- name: CountCourts :one
 SELECT COUNT(*) FROM court;
+
+-- name: DeleteCourt :exec
+DELETE FROM court WHERE id = $1;

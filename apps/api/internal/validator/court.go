@@ -66,3 +66,11 @@ func ValidateCoordinates(coords dto.Coordinates) error {
 
 	return nil
 }
+
+func ValidateCourtID(id int64) error {
+	if id <= 0 {
+		return ValidationError{Field: "id", Message: "must be positive"}
+	}
+
+	return nil
+}

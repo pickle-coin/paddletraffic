@@ -123,6 +123,15 @@ func (q *Queries) CreateCourt(ctx context.Context, arg CreateCourtParams) (Creat
 	return i, err
 }
 
+const DeleteCourt = `-- name: DeleteCourt :exec
+DELETE FROM court WHERE id = $1
+`
+
+func (q *Queries) DeleteCourt(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, DeleteCourt, id)
+	return err
+}
+
 const GetAllCourts = `-- name: GetAllCourts :many
 SELECT
   c.id as court_id,

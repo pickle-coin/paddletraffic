@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	CountCourts(ctx context.Context) (int64, error)
 	CreateCourt(ctx context.Context, arg CreateCourtParams) (CreateCourtRow, error)
+	DeleteCourt(ctx context.Context, id int64) error
 	GetAllCourts(ctx context.Context, arg GetAllCourtsParams) ([]GetAllCourtsRow, error)
 }
 
