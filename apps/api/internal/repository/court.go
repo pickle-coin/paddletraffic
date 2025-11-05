@@ -55,3 +55,7 @@ func (r *courtRepositoryImpl) GetAll(ctx context.Context, params dto.PaginationP
 
 	return dto.NewPaginated(summaries, params.Page, params.PageSize, int(totalCount)), nil
 }
+
+func (r *courtRepositoryImpl) Delete(ctx context.Context, id int64) error {
+	return r.queries.DeleteCourt(ctx, id)
+}

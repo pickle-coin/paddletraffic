@@ -13,3 +13,7 @@ func TestCourtRepository_List_Pagination(t *testing.T) {
 	// db, cleanup := testutil.StartPostgresAndMigrate(t)
 	// defer cleanup()
 }
+
+func TestCourtRepository_Delete_OK(t *testing.T) {
+	t.Skip("not implemented")
+}
