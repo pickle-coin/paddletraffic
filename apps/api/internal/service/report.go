@@ -7,14 +7,14 @@ import (
 	"paddletraffic/internal/repository"
 )
 
-type ReportService struct {
+type reportServiceImpl struct {
 	repo repository.ReportRepository
 }
 
-func NewReportService(repo repository.ReportRepository) *ReportService {
-	return &ReportService{repo: repo}
+func NewReportService(repo repository.ReportRepository) ReportService {
+	return &reportServiceImpl{repo: repo}
 }
 
-func (s *ReportService) Create(ctx context.Context, reportCreate dto.ReportCreate) (dto.ReportSummary, error) {
+func (s *reportServiceImpl) Create(ctx context.Context, reportCreate dto.ReportCreate) (dto.ReportSummary, error) {
 	return s.repo.Create(ctx, reportCreate)
 }
