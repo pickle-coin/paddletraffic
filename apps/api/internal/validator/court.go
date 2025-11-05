@@ -6,6 +6,8 @@ import (
 	"paddletraffic/internal/dto"
 )
 
+// TODO put this somewhere central ... I didn't want to because merge conflicts
+
 type ValidationError struct {
 	Field   string
 	Message string

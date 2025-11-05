@@ -100,6 +100,40 @@ EXECUTE FUNCTION set_updated_at();
 -- Report
 -- ====================================================================================================
 
+-- Function to enforce integrity rules on the report table before insert.
+CREATE OR REPLACE FUNCTION trg_check_report_integrity()
+RETURNS TRIGGER AS $$
+DECLARE
+  total_courts INT;
+BEGIN
+  -- 1. Fetch the total number of courts from the court table
+  SELECT court_count
+  INTO total_courts
+  FROM court
+  WHERE id = NEW.court_id;
+
+  -- Ensure the court exists and count is valid (should be implicitly checked by FK, but good defensive check)
+  IF NOT FOUND OR total_courts IS NULL OR total_courts < 0 THEN
+    RAISE EXCEPTION 'Report integrity check failed: Court ID % not found or total_courts count is invalid.', NEW.court_id;
+  END IF;
+
+  -- 2. Rule 1: courts_occupied must be less than or equal to total_courts
+  IF NEW.courts_occupied > total_courts THEN
+    RAISE EXCEPTION 'Report integrity check failed: courts_occupied (%) cannot exceed total_courts (%) for court ID %.',
+      NEW.courts_occupied, total_courts, NEW.court_id;
+  END IF;
+
+  -- 3. Rule 2: groups_waiting must be 0 if courts_occupied < total_courts (i.e., if there are free courts)
+  IF NEW.courts_occupied < total_courts AND NEW.groups_waiting != 0 THEN
+    RAISE EXCEPTION 'Report integrity check failed: groups_waiting must be 0 when courts_occupied (%) is less than total_courts (%) for court ID %.',
+      NEW.courts_occupied, total_courts, NEW.court_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE TABLE IF NOT EXISTS report (
   id                BIGSERIAL PRIMARY KEY,
 
@@ -115,6 +149,15 @@ CREATE TABLE IF NOT EXISTS report (
   CONSTRAINT courts_occupied_chk    CHECK (courts_occupied >= 0 AND courts_occupied <= 1000),
   CONSTRAINT groups_waiting_chk     CHECK (groups_waiting >= 0 AND groups_waiting <= 1000)
 );
+
+-- ====================================================================================================
+-- Triggers
+-- ====================================================================================================
+
+CREATE TRIGGER trg_check_report_insert
+BEFORE INSERT ON report
+FOR EACH ROW
+EXECUTE FUNCTION trg_check_report_integrity();
 
 CREATE TRIGGER trg_update_report_timestamp
 BEFORE UPDATE ON report

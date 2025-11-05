@@ -29,7 +29,9 @@ func ParsePaginationParams(r *http.Request) dto.PaginationParams {
 
 func DecodeJSON[T any](r *http.Request) (T, error) {
 	var v T
-	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&v); err != nil {
 		return v, err
 	}
 	return v, nil
