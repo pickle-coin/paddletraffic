@@ -5,17 +5,18 @@ import (
 )
 
 func ValidateReportCreate(reportCreate dto.ReportCreate) error {
-	// if courtCreate.Name == "" {
-	// 	return ValidationError{Field: "name", Message: "is required"}
-	// }
+	if reportCreate.CourtsOccupied < 0 {
+		return ValidationError{Field: "courts_occupied", Message: "must be positive"}
+	}
 
-	// if courtCreate.CourtCount <= 0 {
-	// 	return ValidationError{Field: "courtCount", Message: "must be greater than 0"}
-	// }
+	if reportCreate.GroupsWaiting < 0 {
+		return ValidationError{Field: "groups_waiting", Message: "must be positive"}
+	}
 
-	// if err := ValidateLocation(courtCreate.Location); err != nil {
-	// 	return err
-	// }
+	// more validation occurs in paddletraffic/internal/queries/reports.sql
+	// e.g.
+	// assert courts occupied <= total_courts
+	// if courts_occupied < total_courts then assert groups_waiting == 0
 
 	return nil
 }
