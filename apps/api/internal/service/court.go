@@ -22,3 +22,7 @@ func (s *CourtService) Create(ctx context.Context, courtCreate dto.CourtCreate) 
 func (s *CourtService) GetAll(ctx context.Context, params dto.PaginationParams) (dto.Paginated[dto.CourtSummary], error) {
 	return s.repo.GetAll(ctx, params)
 }
+
+func (s *CourtService) Delete(ctx context.Context, id int64) error {
+	return s.repo.Delete(ctx, id)
+}
