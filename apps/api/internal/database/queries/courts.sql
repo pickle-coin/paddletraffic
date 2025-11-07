@@ -55,3 +55,32 @@ LIMIT $1 OFFSET $2;
 
 -- name: CountCourts :one
 SELECT COUNT(*) FROM court;
+
+-- name: GetCourtStatus :one
+SELECT
+  cs.court_id,
+  cs.courts_occupied,
+  cs.groups_waiting
+FROM court_status cs
+WHERE cs.court_id = $1;
+
+-- name: GetCourtStatusBatch :many
+SELECT
+  cs.court_id,
+  cs.courts_occupied,
+  cs.groups_waiting
+FROM court_status cs
+WHERE cs.court_id = ANY($1::bigint[]);
+
+-- name: InsertCourtStatus :one
+INSERT INTO court_status (court_id, courts_occupied, groups_waiting)
+VALUES ($1, $2, $3)
+RETURNING court_id, courts_occupied, groups_waiting, created_at, updated_at;
+
+-- name: UpdateCourtStatus :one
+UPDATE court_status
+SET
+  courts_occupied = $2,
+  groups_waiting = $3
+WHERE court_id = $1
+RETURNING court_id, courts_occupied, groups_waiting, created_at, updated_at;

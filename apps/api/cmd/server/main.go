@@ -75,9 +75,18 @@ func main() {
 
 	queries := db.New(pool)
 
+	// Create repositories
 	courtRepo := repository.NewCourtRepository(queries)
-	courtService := service.NewCourtService(courtRepo)
+	statusRepo := repository.NewStatusRepository(queries)
+
+	// Create services
+	statusService := service.NewStatusService(statusRepo)
+	courtService := service.NewCourtService(courtRepo, statusService)
+
+	// Create handlers
 	courtHandler := handler.NewCourtHandler(courtService)
+	statusHandler := handler.NewStatusHandler(statusService)
+
 	healthHandler := handler.NewHealthHandler(pool)
 
 	r := chi.NewRouter()
@@ -90,6 +99,7 @@ func main() {
 
 	healthHandler.RegisterRoutes(r)
 	courtHandler.RegisterRoutes(r)
+	statusHandler.RegisterRoutes(r)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.Server.Port),
