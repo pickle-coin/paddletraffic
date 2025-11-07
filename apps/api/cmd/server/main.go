@@ -79,7 +79,7 @@ func main() {
 	courtRepo := repository.NewCourtRepository(queries)
 	statusRepo := repository.NewStatusRepository(queries)
 
-	// Create services (StatusService first since CourtService depends on it)
+	// Create services
 	statusService := service.NewStatusService(statusRepo)
 	courtService := service.NewCourtService(courtRepo, statusService)
 

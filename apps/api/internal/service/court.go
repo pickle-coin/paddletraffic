@@ -28,8 +28,6 @@ func (s *CourtService) Create(ctx context.Context, courtCreate dto.CourtCreate) 
 	// Create initial status with 0 values for the new court
 	_, err = s.statusService.InsertStatus(ctx, courtSummary.ID, 0, 0)
 	if err != nil {
-		// Log the error but don't fail the court creation
-		// The status can be created later
 		// TODO: Consider whether we want to rollback the court creation or handle this differently
 		return courtSummary, err
 	}
