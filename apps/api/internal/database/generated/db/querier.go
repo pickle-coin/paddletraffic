@@ -12,6 +12,10 @@ type Querier interface {
 	CountCourts(ctx context.Context) (int64, error)
 	CreateCourt(ctx context.Context, arg CreateCourtParams) (CreateCourtRow, error)
 	GetAllCourts(ctx context.Context, arg GetAllCourtsParams) ([]GetAllCourtsRow, error)
+	GetCourtStatus(ctx context.Context, courtID int64) (GetCourtStatusRow, error)
+	GetCourtStatusBatch(ctx context.Context, dollar_1 []int64) ([]GetCourtStatusBatchRow, error)
+	InsertCourtStatus(ctx context.Context, arg InsertCourtStatusParams) (InsertCourtStatusRow, error)
+	UpdateCourtStatus(ctx context.Context, arg UpdateCourtStatusParams) (UpdateCourtStatusRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

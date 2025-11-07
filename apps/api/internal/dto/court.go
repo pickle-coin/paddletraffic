@@ -27,3 +27,10 @@ type CourtSummary struct {
 	CourtCount int32    `json:"courtCount"`
 	Location   Location `json:"location"`
 }
+
+type CourtStatus struct {
+	CourtID        int64   `json:"courtId"`
+	CourtsOccupied int32   `json:"courtsOccupied"`
+	GroupsWaiting  int32   `json:"groupsWaiting"`
+	LastReport     *string `json:"lastReport"` // TODO: Implement from reports table; ISO 8601 datetime
+}

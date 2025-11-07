@@ -210,3 +210,129 @@ func (q *Queries) GetAllCourts(ctx context.Context, arg GetAllCourtsParams) ([]G
 	}
 	return items, nil
 }
+
+const GetCourtStatus = `-- name: GetCourtStatus :one
+SELECT
+  cs.court_id,
+  cs.courts_occupied,
+  cs.groups_waiting
+FROM court_status cs
+WHERE cs.court_id = $1
+`
+
+type GetCourtStatusRow struct {
+	CourtID        int64 `json:"court_id"`
+	CourtsOccupied int32 `json:"courts_occupied"`
+	GroupsWaiting  int32 `json:"groups_waiting"`
+}
+
+func (q *Queries) GetCourtStatus(ctx context.Context, courtID int64) (GetCourtStatusRow, error) {
+	row := q.db.QueryRow(ctx, GetCourtStatus, courtID)
+	var i GetCourtStatusRow
+	err := row.Scan(&i.CourtID, &i.CourtsOccupied, &i.GroupsWaiting)
+	return i, err
+}
+
+const GetCourtStatusBatch = `-- name: GetCourtStatusBatch :many
+SELECT
+  cs.court_id,
+  cs.courts_occupied,
+  cs.groups_waiting
+FROM court_status cs
+WHERE cs.court_id = ANY($1::bigint[])
+`
+
+type GetCourtStatusBatchRow struct {
+	CourtID        int64 `json:"court_id"`
+	CourtsOccupied int32 `json:"courts_occupied"`
+	GroupsWaiting  int32 `json:"groups_waiting"`
+}
+
+func (q *Queries) GetCourtStatusBatch(ctx context.Context, dollar_1 []int64) ([]GetCourtStatusBatchRow, error) {
+	rows, err := q.db.Query(ctx, GetCourtStatusBatch, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCourtStatusBatchRow{}
+	for rows.Next() {
+		var i GetCourtStatusBatchRow
+		if err := rows.Scan(&i.CourtID, &i.CourtsOccupied, &i.GroupsWaiting); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const InsertCourtStatus = `-- name: InsertCourtStatus :one
+INSERT INTO court_status (court_id, courts_occupied, groups_waiting)
+VALUES ($1, $2, $3)
+RETURNING court_id, courts_occupied, groups_waiting, created_at, updated_at
+`
+
+type InsertCourtStatusParams struct {
+	CourtID        int64 `json:"court_id"`
+	CourtsOccupied int32 `json:"courts_occupied"`
+	GroupsWaiting  int32 `json:"groups_waiting"`
+}
+
+type InsertCourtStatusRow struct {
+	CourtID        int64              `json:"court_id"`
+	CourtsOccupied int32              `json:"courts_occupied"`
+	GroupsWaiting  int32              `json:"groups_waiting"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) InsertCourtStatus(ctx context.Context, arg InsertCourtStatusParams) (InsertCourtStatusRow, error) {
+	row := q.db.QueryRow(ctx, InsertCourtStatus, arg.CourtID, arg.CourtsOccupied, arg.GroupsWaiting)
+	var i InsertCourtStatusRow
+	err := row.Scan(
+		&i.CourtID,
+		&i.CourtsOccupied,
+		&i.GroupsWaiting,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const UpdateCourtStatus = `-- name: UpdateCourtStatus :one
+UPDATE court_status
+SET
+  courts_occupied = $2,
+  groups_waiting = $3
+WHERE court_id = $1
+RETURNING court_id, courts_occupied, groups_waiting, created_at, updated_at
+`
+
+type UpdateCourtStatusParams struct {
+	CourtID        int64 `json:"court_id"`
+	CourtsOccupied int32 `json:"courts_occupied"`
+	GroupsWaiting  int32 `json:"groups_waiting"`
+}
+
+type UpdateCourtStatusRow struct {
+	CourtID        int64              `json:"court_id"`
+	CourtsOccupied int32              `json:"courts_occupied"`
+	GroupsWaiting  int32              `json:"groups_waiting"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) UpdateCourtStatus(ctx context.Context, arg UpdateCourtStatusParams) (UpdateCourtStatusRow, error) {
+	row := q.db.QueryRow(ctx, UpdateCourtStatus, arg.CourtID, arg.CourtsOccupied, arg.GroupsWaiting)
+	var i UpdateCourtStatusRow
+	err := row.Scan(
+		&i.CourtID,
+		&i.CourtsOccupied,
+		&i.GroupsWaiting,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
