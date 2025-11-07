@@ -75,12 +75,16 @@ func main() {
 
 	queries := db.New(pool)
 
+	// Create repositories
 	courtRepo := repository.NewCourtRepository(queries)
-	courtService := service.NewCourtService(courtRepo)
-	courtHandler := handler.NewCourtHandler(courtService)
-
 	statusRepo := repository.NewStatusRepository(queries)
+
+	// Create services (StatusService first since CourtService depends on it)
 	statusService := service.NewStatusService(statusRepo)
+	courtService := service.NewCourtService(courtRepo, statusService)
+
+	// Create handlers
+	courtHandler := handler.NewCourtHandler(courtService)
 	statusHandler := handler.NewStatusHandler(statusService)
 
 	healthHandler := handler.NewHealthHandler(pool)
