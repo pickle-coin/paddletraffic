@@ -10,4 +10,5 @@ import (
 type CourtRepository interface {
 	Create(ctx context.Context, courtCreate dto.CourtCreate) (dto.CourtSummary, error)
 	GetAll(ctx context.Context, params dto.PaginationParams) (dto.Paginated[dto.CourtSummary], error)
+	Delete(ctx context.Context, id int64) error
 }

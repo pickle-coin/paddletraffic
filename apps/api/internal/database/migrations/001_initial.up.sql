@@ -55,7 +55,7 @@ EXECUTE FUNCTION set_updated_at();
 CREATE TABLE IF NOT EXISTS court (
   id            BIGSERIAL PRIMARY KEY,
 
-  location_id   BIGINT  NOT NULL REFERENCES location(id),
+  location_id   BIGINT  NOT NULL REFERENCES location(id) ON DELETE CASCADE,
   name          TEXT    NOT NULL,
   court_count   INT     NOT NULL,
 

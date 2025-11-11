@@ -30,3 +30,15 @@ func TestCreateCourt_BadRequest(t *testing.T) {
 	//     t.Fatalf("expected 400, got %d", rec.Code)
 	// }
 }
+
+func TestDeleteCourt_OK(t *testing.T) {
+	t.Skip("not implemented")
+}
+
+func TestDeleteCourt_InvalidID(t *testing.T) {
+	t.Skip("not implemented")
+}
+
+func TestDeleteCourt_ServiceError(t *testing.T) {
+	t.Skip("not implemented")
+}
